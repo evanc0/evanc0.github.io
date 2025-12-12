@@ -209,30 +209,38 @@
           : "обычный (36.5%)";
         const taxInfo = ` (налог ${taxRate}%)`;
 
+        function profitColor(value) {
+          return value >= 0 ? "#27ae60" : "#e74c3c";
+        }
+
+        const revenueColor = profitColor(totalRevenue);
+        const profitColorValue = profitColor(profit);
+        const profitPerUnitColor = profitColor(profitPerUnit);
+
         resultDiv.innerHTML = `
-        <h3>Результаты (${modeName}${taxInfo}):</h3>
-        <p>🔹 Получено: <span class="highlight">${totalProduct.toLocaleString()}</span> × Обработанной древесины T4.3</p>
-        <p>🛒 Закуплено: 
-          <span class="highlight">${initialRaw.toLocaleString()}</span> × Необработанного бревна T4.3, 
-          <span class="highlight">${initialRefined.toLocaleString()}</span> × Обработанной древесины T3.0
-        </p>
-        <p>💰 Затраты: <span class="highlight">${Math.round(
-          totalCost
-        ).toLocaleString()} серебра</span></p>
-        <p>📈 Доход от продажи: <span class="highlight">${Math.round(
+  <h3>Результаты (${modeName}${taxInfo}):</h3>
+  <p>🔹 Получено: <span class="highlight">${totalProduct.toLocaleString()}</span> × Обработанной древесины T4.3</p>
+  <p>🛒 Закуплено: 
+    <span class="highlight">${initialRaw.toLocaleString()}</span> × Необработанного бревна T4.3, 
+    <span class="highlight">${initialRefined.toLocaleString()}</span> × Обработанной древесины T3.0
+  </p>
+  <p>💰 Затраты: <span class="highlight">${Math.round(
+    totalCost
+  ).toLocaleString()} серебра</span></p>
+  <p>📈 Доход от продажи: <span style="font-weight: bold; color: ${revenueColor};">${Math.round(
           totalRevenue
         ).toLocaleString()} серебра</span></p>
-        <p>✅ Чистая прибыль: <span class="highlight">${Math.round(
+  <p>✅ Чистая прибыль: <span style="font-weight: bold; color: ${profitColorValue};">${Math.round(
           profit
         ).toLocaleString()} серебра</span></p>
-        <p>📊 Прибыль на единицу: <span class="highlight">${profitPerUnit.toLocaleString()} серебра</span></p>
-        <div class="tip">
-          💡 <strong>Как это работает:</strong> После каждого крафта возвращается ${Math.round(
-            refund * 100
-          )}% ресурсов.
-          Они автоматически используются для новых циклов крафта, пока хватает на 1 единицу.
-        </div>
-      `;
+  <p>📊 Прибыль на единицу: <span style="font-weight: bold; color: ${profitPerUnitColor};">${profitPerUnit.toLocaleString()} серебра</span></p>
+  <div class="tip">
+    💡 <strong>Как это работает:</strong> После каждого крафта возвращается ${Math.round(
+      refund * 100
+    )}% ресурсов.
+    Они автоматически используются для новых циклов крафта, пока хватает на 1 единицу.
+  </div>
+`;
         resultDiv.style.display = "block";
       }
 
