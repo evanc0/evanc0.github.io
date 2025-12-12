@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Альбион: Крафт обработанной древесины T4.3</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 650px;
+        margin: 25px auto;
+        padding: 20px;
+        background-color: #f9fbfd;
+        color: #2c3e50;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #2980b9;
+      }
+      label {
+        display: block;
+        margin-top: 16px;
+        font-weight: bold;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 9px;
+        margin-top: 6px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+      }
+      .checkbox-group {
+        margin-top: 16px;
+      }
+      .checkbox-group input {
+        width: auto;
+        margin-right: 10px;
+      }
+      #result {
+        margin-top: 25px;
+        padding: 20px;
+        background-color: #eaf7ff;
+        border-radius: 8px;
+        display: none;
+        border-left: 5px solid #3498db;
+      }
+      .highlight {
+        font-weight: bold;
+        color: #27ae60;
+      }
+      .loss {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+      .tip {
+        background-color: #fff8e1;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 15px;
+        font-size: 14px;
+        border-left: 3px solid #f1c40f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🪵 Крафт обработанной древесины T4.3</h1>
+
+    <label>Цена Необработанного бревна T4.3 (серебро):</label>
+    <input
+      type="number"
+      id="rawPrice"
+      value="5000"
+      min="0"
+      step="100"
+      oninput="recalculate()"
+    />
+
+    <label>Цена Обработанной древесины T3.0 (серебро):</label>
+    <input
+      type="number"
+      id="refinedPrice"
+      value="1800"
+      min="0"
+      step="100"
+      oninput="recalculate()"
+    />
+
+    <label>Цена Обработанной древесины T4.3 при продаже (серебро):</label>
+    <input
+      type="number"
+      id="productSellPrice"
+      value="12500"
+      min="0"
+      step="100"
+      oninput="recalculate()"
+    />
+
+    <label>Количество закупленного Необработанного бревна T4.3:</label>
+    <input
+      type="number"
+      id="rawAmount"
+      value="200"
+      min="0"
+      step="1"
+      oninput="recalculate()"
+    />
+
+    <label>Количество закупленной Обработанной древесины T3.0:</label>
+    <input
+      type="number"
+      id="refinedAmount"
+      value="100"
+      min="0"
+      step="1"
+      oninput="recalculate()"
+    />
+
+    <label>Налог на продажу:</label>
+    <select id="taxRate" oninput="recalculate()">
+      <option value="6.5">6.5% (Налог с премиумом)</option>
+      <option value="10.5" selected>10.5% (Обычный налог)</option>
+    </select>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="useFocus" oninput="recalculate()" />
+      <label for="useFocus" style="display: inline; font-weight: normal">
+        Использовать фокусировку (возврат 53.9% вместо 36.5%)
+      </label>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+      function recalculate() {
+        const rawPrice =
+          parseFloat(document.getElementById("rawPrice").value) || 0;
+        const refinedPrice =
+          parseFloat(document.getElementById("refinedPrice").value) || 0;
+        const productSellPrice =
+          parseFloat(document.getElementById("productSellPrice").value) || 0;
+        let rawAmount =
+          parseFloat(document.getElementById("rawAmount").value) || 0;
+        let refinedAmount =
+          parseFloat(document.getElementById("refinedAmount").value) || 0;
+        const taxRate =
+          parseFloat(document.getElementById("taxRate").value) || 0;
+        const useFocus = document.getElementById("useFocus").checked;
+
+        if (
+          rawPrice <= 0 ||
+          refinedPrice <= 0 ||
+          productSellPrice <= 0 ||
+          rawAmount < 0 ||
+          refinedAmount < 0
+        ) {
+          document.getElementById("result").style.display = "none";
+          return;
+        }
+
+        const refund = useFocus ? 0.539 : 0.365;
+        let totalProduct = 0;
+        let totalRawUsed = 0;
+        let totalRefinedUsed = 0;
+
+        // Симуляция крафта с возвратом
+        while (true) {
+          const possibleFromRaw = Math.floor(rawAmount / 2);
+          const possibleFromRefined = Math.floor(refinedAmount);
+          const craftNow = Math.min(possibleFromRaw, possibleFromRefined);
+
+          if (craftNow <= 0) break;
+
+          totalProduct += craftNow;
+          const rawSpent = craftNow * 2;
+          const refinedSpent = craftNow;
+
+          totalRawUsed += rawSpent;
+          totalRefinedUsed += refinedSpent;
+
+          rawAmount -= rawSpent;
+          refinedAmount -= refinedSpent;
+
+          // Возврат
+          rawAmount += rawSpent * refund;
+          refinedAmount += refinedSpent * refund;
+        }
+
+        // Итоговые затраты (по реальной покупке)
+        const initialRaw =
+          parseFloat(document.getElementById("rawAmount").value) || 0;
+        const initialRefined =
+          parseFloat(document.getElementById("refinedAmount").value) || 0;
+        const totalCost = initialRaw * rawPrice + initialRefined * refinedPrice;
+
+        const sellPriceAfterTax = productSellPrice * (1 - taxRate / 100);
+        const totalRevenue = totalProduct * sellPriceAfterTax;
+        const profit = totalRevenue - totalCost;
+        const profitPerUnit =
+          totalProduct > 0 ? Math.round(profit / totalProduct) : 0;
+
+        const resultDiv = document.getElementById("result");
+        const modeName = useFocus
+          ? "с фокусировкой (53.9%)"
+          : "обычный (36.5%)";
+        const taxInfo = ` (налог ${taxRate}%)`;
+
+        resultDiv.innerHTML = `
+        <h3>Результаты (${modeName}${taxInfo}):</h3>
+        <p>🔹 Получено: <span class="highlight">${totalProduct.toLocaleString()}</span> × Обработанной древесины T4.3</p>
+        <p>🛒 Закуплено: 
+          <span class="highlight">${initialRaw.toLocaleString()}</span> × Необработанного бревна T4.3, 
+          <span class="highlight">${initialRefined.toLocaleString()}</span> × Обработанной древесины T3.0
+        </p>
+        <p>💰 Затраты: <span class="highlight">${Math.round(
+          totalCost
+        ).toLocaleString()} серебра</span></p>
+        <p>📈 Доход от продажи: <span class="highlight">${Math.round(
+          totalRevenue
+        ).toLocaleString()} серебра</span></p>
+        <p>✅ Чистая прибыль: <span class="highlight">${Math.round(
+          profit
+        ).toLocaleString()} серебра</span></p>
+        <p>📊 Прибыль на единицу: <span class="highlight">${profitPerUnit.toLocaleString()} серебра</span></p>
+        <div class="tip">
+          💡 <strong>Как это работает:</strong> После каждого крафта возвращается ${Math.round(
+            refund * 100
+          )}% ресурсов.
+          Они автоматически используются для новых циклов крафта, пока хватает на 1 единицу.
+        </div>
+      `;
+        resultDiv.style.display = "block";
+      }
+
+      // Инициализация Telegram Mini App
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      recalculate();
+    </script>
+  </body>
+</html>
